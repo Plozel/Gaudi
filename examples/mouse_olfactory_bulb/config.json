@@ -1,0 +1,36 @@
+{
+    "adata_path": "mouse_olfactory_bulb.h5ad",
+    "pca_components": 30,
+    "min_genes": 10,
+    "min_cells": 30,
+    "n_top_genes": 20000,
+    "sample_name": "mouse_olfactory_bulb",
+    "dataset_name": "Dataset1_LiuLongQi_MouseOlfactoryBulb",
+    "experiment_name": "exp_0001",
+    "cellchatdb_type": "Mouse",
+    "seed": 1,
+    "community_detection_method": "optics",
+    "n_iter": 2,
+    "first_step_detection_config": {
+        "min_samples": 7,
+        "min_cluster_size": 7,
+        "xi": 1e-05,
+        "max_eps": 300
+    },
+    "rest_steps_detection_config": {
+        "min_samples": 5,
+        "min_cluster_size": 5,
+        "xi": 1e-02,
+        "max_eps": 70
+    },
+    "max_edges_length": 70,
+    "k_nearest_neighbors": 20,
+    "device": "cuda:2",
+    "train": true,
+    "epochs": 300,
+    "hidden_dim": 2000,
+    "output_dim": 150,
+    "measures_to_calculate": [
+        "mean"
+    ]
+}

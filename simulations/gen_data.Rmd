@@ -1,0 +1,166 @@
+---
+title: "simulations"
+author: "oren"
+output: html_document
+---
+
+
+```{r}
+# Load required libraries
+library(dplyr)
+library(SRTsim)
+library(Seurat)
+library(gtools)  # For generating permutations
+
+# Function to calculate Euclidean distance between two vectors
+euclidean_distance <- function(a, b) {
+  return(sqrt(sum((a - b)^2)))
+}
+
+# Set initial seed
+set.seed(1)
+
+# Define constants and paths
+dataset_path <- "/bigdata/orenploznik/code/GAUDI/data/simulations"
+nGene <- 2000
+nLoc <- 10000
+
+# Load Ligand-Receptor data and predefined spatial locations
+load("LR_dat.RData")
+load("starmap_1020_0410_seurat_filter_layer.rds")
+info2 <- info %>% select(c(x, y, label)) %>% filter(label != "Smc") %>% as.data.frame()
+
+# Get list of CSV files in the dataset folder
+folder_list <- list.dirs(path = dataset_path, recursive = FALSE)
+exp_counter <- 1
+
+# Loop through each subdirectory
+for (folder_path in folder_list) {
+  exp_counter <- exp_counter + 1
+  
+  # Get the CSV file within the subdirectory
+  csv_file <- list.files(path = folder_path, pattern = "*.csv", full.names = TRUE)
+  if (length(csv_file) != 1) {
+    warning(paste0("Skipping ", folder_path, " as it contains zero or multiple CSV files."))
+    next
+  }
+  isid <- sample(1:100, 1)
+  foldchange <- sample(c(1, 2, 5, 10), 1)
+  
+  set.seed(isid)
+  
+  # Initialize the matrix for region-cell type proportions
+  region_celltype_df <- matrix(0, nrow = 5, ncol = 4)
+
+  # Generate unique and sufficiently different cell type compositions for each region
+  threshold_distance <- 0.4  # Set a threshold for minimum distance between compositions
+  max_iterations <- 100  # Maximum number of iterations to find a unique composition
+  
+  # Initialize a vector to keep track of the dominant cell type for each region
+  dominant_cell_types <- integer(0)
+  
+  for (i in 1:4) {
+    is_unique <- FALSE
+    counter <- 0  # Counter to keep track of the number of iterations
+    
+    while (!is_unique) {
+      counter <- counter + 1
+      
+      random_proportions <- runif(4, 0, 0.6)
+      sorted_proportions <- sort(random_proportions)
+      normalized_proportions <- prop.table(sorted_proportions)
+      
+      
+      # Shuffle the sorted proportions to randomize the dominant cell type
+      shuffled_proportions <- sample(normalized_proportions)
+      dominant_cell_type <- which.max(shuffled_proportions)
+      
+      is_unique <- TRUE  # Assume the generated composition is unique
+      
+      # Check if the generated composition is sufficiently different from existing ones
+      for (j in 1:(i - 1)) {
+        if (sum(region_celltype_df[j, ]) > 0) {  # Only compare against filled rows
+          distance <- euclidean_distance(shuffled_proportions, region_celltype_df[j, ])
+          if (distance < threshold_distance || dominant_cell_type %in% dominant_cell_types) {
+            is_unique <- FALSE
+            break
+          }
+        }
+      }
+      
+      # Break out of the loop if maximum number of iterations is reached
+      if (counter >= max_iterations) {
+        warning("Maximum number of iterations reached. Lowering the threshold.")
+        threshold_distance <- threshold_distance * 0.9  # Lower the threshold
+        counter <- 0  # Reset the counter
+      }
+    }
+    
+    # If unique and sufficiently different, add to the matrix
+    region_celltype_df[i, ] <- shuffled_proportions
+    dominant_cell_types <- c(dominant_cell_types, dominant_cell_type)
+  }
+
+  # Handle 'Noise' row
+  chosen_col_for_noise <- sample(1:ncol(region_celltype_df), 1)
+  region_celltype_df[5, chosen_col_for_noise] <- 0.7
+  remaining_value <- 1 - 0.7
+  remaining_cols <- setdiff(1:ncol(region_celltype_df), chosen_col_for_noise)
+  region_celltype_df[5, remaining_cols] <- remaining_value / length(remaining_cols)
+  
+  # Add row and column names
+  rownames(region_celltype_df) <- c('Region1', 'Region2', 'Region3', 'Region4', 'Noise')
+  colnames(region_celltype_df) <- paste0("Celltype", 1:4)
+  
+  # Print the composition of each region
+  print("Cell type composition for each region:")
+  for (i in 1:4) {
+    print(paste0("Region ", i, ": ", paste(round(region_celltype_df[i, ], 2), collapse = ", ")))
+  }
+  
+  # Read the spatial locations from the CSV file
+  simLoc <- read.csv(csv_file)
+  
+  # Run the spatial transcriptomics simulation
+  example_CCI_free <- srtsim_cci_free(
+    zero_prop_in = 0,
+    disper_in = Inf,
+    mu_in = 1,
+    numGene = nGene,
+    location_in = simLoc[, c("x", "y", "region_label")],
+    region_cell_map = region_celltype_df,
+    sim_seed = isid,
+    fc = foldchange,
+    LR_in = LR_dat,
+    numSingleCellType = 5000
+  )
+
+  coord_free.df <- data.frame(x = example_CCI_free@simcolData$x, y = example_CCI_free@simcolData$y)
+  rownames(coord_free.df) <- example_CCI_free@simcolData@rownames
+
+  example_CCI_free_seurat <- CreateSeuratObject(counts = example_CCI_free@simCounts, assay = "Spatial")
+  example_CCI_free_seurat@images$image <- new(
+    Class = 'SlideSeq',
+    assay = "Spatial",
+    key = "image_",
+    coordinates = coord_free.df
+  )
+
+  example_CCI_free_seurat@meta.data$region_label <- example_CCI_free@simcolData$region_label
+  example_CCI_free_seurat@meta.data$celltype <- example_CCI_free@simcolData$celltype
+  
+  
+  saveRDS(example_CCI_free_seurat, paste0(folder_path, '/example_CCI_free_seurat.rds'))
+
+  count_matrix <- as.matrix(example_CCI_free_seurat@assays$Spatial$counts)
+  cell_meta <- as.data.frame(example_CCI_free_seurat@meta.data)
+  feature_meta <- rownames(count_matrix)
+  
+  write.csv(count_matrix, paste0(folder_path, "/count_matrix.csv"))
+  write.csv(cell_meta, paste0(folder_path, "/cell_metadata.csv"))
+  write.csv(data.frame(gene = feature_meta), paste0(folder_path, "/feature_metadata.csv"))
+  write.csv(coord_free.df, paste0(folder_path, "/spatial_coordinates.csv"))
+}
+
+```
+

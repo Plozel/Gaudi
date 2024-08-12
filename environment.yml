@@ -1,0 +1,23 @@
+name: gaudi_env
+channels:
+  - pytorch
+  - pyg
+  - nvidia
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pytorch>=2.1
+  - pytorch-cuda=12.1
+  - pyg>=2.5.2
+  - numpy
+  - scipy
+  - scikit-learn>=1.3.0
+  - squidpy>=1.5.0
+  - pandas
+  - matplotlib
+  - tqdm
+  - networkx
+  - hdbscan
+  - ipykernel
+  - ipywidgets
+  - plotly
