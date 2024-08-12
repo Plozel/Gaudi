@@ -1,0 +1,35 @@
+
+{
+    "adata_path": "simulations_sample_1.h5ad",
+    "pca_components": 100,
+    "min_genes": 10,
+    "min_cells": 100,
+    "n_top_genes": 15000,
+    "sample_name": "sample_1",
+    "dataset_name": "simulations",
+    "experiment_name": "exp_001",
+    "seed": 1,
+    "community_detection_method": "hdbscan",
+    "n_iter": 0,
+    "first_step_detection_config": {
+        "min_samples": 10,
+        "min_cluster_size": 10,
+        "xi": 0.01,
+        "max_eps": 300
+    },
+    "rest_steps_detection_config": {
+        "min_samples": 5,
+        "min_cluster_size": 5,
+        "xi": 0.01,
+        "max_eps": 200
+    },
+    "max_edges_length": 25,
+    "k_nearest_neighbors": 25,
+    "device": "cuda:3",
+    "train": true,
+    "epochs": 500,
+    "hidden_dim": 300,
+    "output_dim": 500,
+    "measures_to_calculate": ["mean"],
+    "main_composition_key": "celltype"
+}
