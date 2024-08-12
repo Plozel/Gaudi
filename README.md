@@ -92,4 +92,5 @@ You can find example Jupyter notebooks demonstrating various use cases in the `e
 - [Mouse Olfactory Bulb (StereoSeq)](examples/mouse_olfactory_bulb/mouse_olfactory_bulb.ipynb)
 - [Mouse Hippocampus (SlideSeq)](examples/mouse_hippocampus/mouse_hippocampus.ipynb)
 - [Human Lymph Node (Xenium)](examples/lymph_node/lymph_node.ipynb)
+- [Simulations - Sample 1](examples/simulations_sample_1/simulations_sample_1.ipynb)
 
