@@ -445,8 +445,8 @@ class GaudiObject:
         patience=10,
         epochs=500,
         conv_layer=GCNConv,
-        num_node_layers=2,
-        num_community_layers=2,
+        activation_fn=torch.nn.PReLU,
+        num_layers=2,
         seed=1,
         **kwargs,
     ):
