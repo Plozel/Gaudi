@@ -41,12 +41,11 @@ class HierarchicalDeepGraphInfomax(torch.nn.Module):
     def reset_parameters(self):
         reset(self.encoder)
         reset(self.summary)
-        reset(self.node_weight)
-        reset(self.community_weight)
-        reset(self.joint_weight)
-        uniform(self.output_dim, self.node_weight)
-        uniform(self.output_dim, self.community_weight)
-        uniform(self.output_dim, self.joint_weight)
+        # Xavier Initialization for node and community weights
+        init.xavier_uniform_(self.node_weight)
+        init.xavier_uniform_(self.community_weight)
+        # He Initialization for joint weights
+        init.kaiming_uniform_(self.joint_weight, a=0, mode='fan_in', nonlinearity='relu')
 
     def forward(self, *args, separators, **kwargs) -> tuple:
         pos_z = self.encoder(*args, **kwargs)
@@ -79,7 +78,7 @@ class HierarchicalDeepGraphInfomax(torch.nn.Module):
             weight = self.joint_weight
 
         summary = summary.t() if summary.dim() > 1 else summary
-        value = torch.matmul(z, torch.matmul(weight, torch.sigmoid(summary)))
+        value = torch.matmul(z, torch.matmul(weight, summary))
         return torch.sigmoid(value)
 
     def loss(
