@@ -38,8 +38,8 @@ class RepresentationsGenerator:
         epochs,
         train,
         conv_layer,
-        num_node_layers,
-        num_community_layers,
+        activation_fn,
+        num_layers,
         seed,
     ):
 
@@ -50,7 +50,7 @@ class RepresentationsGenerator:
         # Assuming that the first sample is representative of the dataset's initial feature dimension
         input_dim = self.data.x.shape[1]
         encoder = layers.CommunityFocusedNetwork(
-            input_dim=input_dim, hidden_dim=hidden_dim, output_dim=output_dim, conv_layer=conv_layer, num_node_layers=num_node_layers, num_community_layers=num_community_layers)
+            input_dim=input_dim, hidden_dim=hidden_dim, output_dim=output_dim, conv_layer=conv_layer, activation_fn=activation_fn, num_layers=num_layers, seed=seed)
 
         model = HierarchicalDeepGraphInfomax(
             output_dim=output_dim,
@@ -122,11 +122,11 @@ class RepresentationsGenerator:
 
         return embeds_list
 
-    def get_representations(self, train=False, hidden_dim=2000, output_dim=150, device=None, lr=1e-4, weight_decay=1e-5, gamma=0.1, patience=10, epochs=500, conv_layer=GCNConv, num_node_layers=2, num_community_layers=2, seed=1):
+    def get_representations(self, train=False, hidden_dim=2000, output_dim=150, device=None, lr=1e-4, weight_decay=1e-5, gamma=0.1, patience=10, epochs=500, conv_layer=GCNConv, activation_fn=torch.nn.PReLU, num_layers=2, seed=1):
         """
         Generates cell and community level representations using the Heirarchical Deep Graph Infomax learning procedure integrated with the Community-Focused Networks architecture.
         """
-        self.train_or_load_model(train=train, hidden_dim=hidden_dim, output_dim=output_dim, device=device, lr=lr, weight_decay=weight_decay, gamma=gamma, patience=patience, epochs=epochs, conv_layer=conv_layer, num_node_layers=num_node_layers, num_community_layers=num_community_layers, seed=seed)
+        self.train_or_load_model(train=train, hidden_dim=hidden_dim, output_dim=output_dim, device=device, lr=lr, weight_decay=weight_decay, gamma=gamma, patience=patience, epochs=epochs, conv_layer=conv_layer, activation_fn=activation_fn, num_layers=num_layers, seed=seed)
         embeds = self.get_embedding_list(self.data.separators)
 
         if self.gaudi_obj is not None:
