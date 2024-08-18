@@ -470,8 +470,8 @@ class GaudiObject:
             patience=patience,
             epochs=epochs,
             conv_layer=conv_layer,
-            num_node_layers=num_node_layers,
-            num_community_layers=num_community_layers,
+            activation_fn=activation_fn,
+            num_layers=num_layers,
             seed=seed,
             **kwargs,
         )
