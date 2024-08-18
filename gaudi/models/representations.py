@@ -50,7 +50,7 @@ class RepresentationsGenerator:
         # Assuming that the first sample is representative of the dataset's initial feature dimension
         input_dim = self.data.x.shape[1]
         encoder = layers.CommunityFocusedNetwork(
-            input_dim=input_dim, hidden_dim=hidden_dim, output_dim=output_dim, conv_layer=conv_layer, activation_fn=activation_fn, num_layers=num_layers, seed=seed)
+            input_dim=input_dim, hidden_dim=hidden_dim, output_dim=output_dim, conv_layer=conv_layer, activation_fn=activation_fn, num_layers=num_layers)
 
         model = HierarchicalDeepGraphInfomax(
             output_dim=output_dim,
