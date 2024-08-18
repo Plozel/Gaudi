@@ -1,56 +1,62 @@
 import torch
 
-class CommunityFocusedNetwork(torch.nn.Module):
-    """Encodes node and community information using specified graph convolution layers with customizable depth."""
 
-    def __init__(self, input_dim, hidden_dim, output_dim, 
-                 conv_layer, num_node_layers, num_community_layers):
+
+class CommunityFocusedNetwork(nn.Module):
+    """
+    Encodes node and community information in a hierarchical manner by interleaving
+    node-to-node and node-to-community graph convolutional layers. Supports customizable
+    depth, convolutional types, and activation functions for capturing both local and 
+    global graph interactions.
+    """
+
+    def __init__(self, input_dim, hidden_dim, output_dim, conv_layer, activation_fn, num_layers):
         super(CommunityFocusedNetwork, self).__init__()
+        
+        assert num_layers >= 1, "The model must have at least one layer."
+        self.num_layers = num_layers
 
-        # Validate the minimum number of layers
-        assert num_node_layers >= 1, "There should be at least one node layer."
-        assert num_community_layers >= 1, "There should be at least one community layer."
+        # Create interleaved node-to-node and node-to-community layers
+        self.layers = nn.ModuleList()
+        for i in range(self.num_layers):
+            node_layer = conv_layer(input_dim if i == 0 else hidden_dim, hidden_dim)
+            community_layer = conv_layer(hidden_dim, hidden_dim if i < self.num_layers - 1 else output_dim)
+            self.layers.append(nn.Sequential(node_layer, activation_fn(), community_layer, activation_fn()))
         
-        # Create node-to-node connection layers
-        self.node_convs = torch.nn.ModuleList()
-        self.node_convs.append(conv_layer(input_dim, hidden_dim))
-        for _ in range(num_node_layers - 1):
-            self.node_convs.append(conv_layer(hidden_dim, hidden_dim))
-        
-        # Create node-to-community connection layers
-        self.community_convs = torch.nn.ModuleList()
-        for _ in range(num_community_layers - 1):
-            self.community_convs.append(conv_layer(hidden_dim, hidden_dim))
-        self.community_convs.append(conv_layer(hidden_dim, output_dim))
-        
-        # Activation layers for all convolutional layers
-        self.activations = torch.nn.ModuleList([torch.nn.PReLU(hidden_dim) for _ in range(num_node_layers + num_community_layers - 1)])
-        self.activations.append(torch.nn.PReLU(output_dim))
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        for layer in self.layers:
+            for module in layer:
+                if hasattr(module, 'reset_parameters'):
+                    module.reset_parameters()
 
     def forward(self, x, edge_index, community_edge_index):
-        # Process node-to-node connections
-        for conv, activation in zip(self.node_convs, self.activations[:len(self.node_convs)]):
-            x = activation(conv(x, edge_index))
-
-        # Process node-to-community connections
-        for conv, activation in zip(self.community_convs, self.activations[len(self.node_convs):]):
-            x = activation(conv(x, community_edge_index))
-
+        for layer in self.layers:
+            x = layer[1](layer[0](x, edge_index))
+            x = layer[3](layer[2](x, community_edge_index))
         return x
-
-
-
+        
 def corruption(x, edge_index, community_edge_index, *args, **kwargs):
-    """Shuffles the node features for corruption."""
+    """
+    Generates a corrupted version of the graph by shuffling node features and 
+    adjacency structures for both node-to-node and node-to-community connections.
+    """
 
     shuffled_x = x[torch.randperm(x.size(0)), :]
-    return shuffled_x, edge_index, community_edge_index
+    shuffled_edge_index = edge_index[:, torch.randperm(edge_index.size(1))]
+    shuffled_community_edge_index = community_edge_index[:, torch.randperm(community_edge_index.size(1))]
+
+    return shuffled_x, shuffled_edge_index, shuffled_community_edge_index
+
 
 
 def summary(node_x, community_x, *args, **kwargs):
-    """Computes the summary for nodes and communities."""
+    """
+    Computes node and community summaries by applying sigmoid activation and averaging.
+    """
 
-    node_summary = node_x.mean(dim=0)
-    community_summary = community_x.mean(dim=0)
-
+    node_summary = torch.sigmoid(node_x).mean(dim=0)
+    community_summary = torch.sigmoid(community_x).mean(dim=0)
     return node_summary, community_summary
+
