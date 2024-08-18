@@ -2,6 +2,7 @@ import torch
 from torch import Tensor
 from torch.nn import Parameter
 from torch_geometric.nn.inits import reset, uniform
+import torch.nn.init as init
 
 
 EPS = 1e-15
