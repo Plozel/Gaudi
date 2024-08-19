@@ -123,7 +123,7 @@ def run_preprocessing(
 
     logging.info("Normalizing data...")
     adata.layers["counts"] = adata.X.copy()
-    sc.pp.normalize_total(adata, inplace=True, target_sum=1e4)
+    sc.pp.normalize_total(adata, inplace=True)
     sc.pp.log1p(adata)
     adata.layers["log_normalized"] = adata.X.copy()
 
