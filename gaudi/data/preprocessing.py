@@ -132,7 +132,7 @@ def run_preprocessing(
     sc.pp.scale(adata)
     adata.layers["scaled_log_normalized"] = adata.X.copy()
     logging.info("Performing PCA...")
-    sc.pp.pca(adata, n_comps=pca_components)
+    sc.pp.pca(adata, n_comps=pca_components, zero_center=True)
 
     adata.X = adata.layers["log_normalized"].copy()
     adata.uns["preprocessing_flag"] = True
