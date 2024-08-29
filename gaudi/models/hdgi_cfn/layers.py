@@ -41,17 +41,18 @@ class CommunityFocusedNetwork(nn.Module):
         
 def corruption(x, edge_index, community_edge_index, *args, **kwargs):
     """
-    Generates a corrupted version of the graph by shuffling node features and 
-    adjacency structures for both node-to-node and node-to-community connections.
+    Corrupts the input graph by shuffling the adjacency indices.
     """
 
-    shuffled_x = x[torch.randperm(x.size(0)), :]
-    shuffled_edge_index = edge_index[:, torch.randperm(edge_index.size(1))]
+    # Shuffle the adjacency indices along the first dimension
+    shuffled_edge_index = edge_index.clone()
+    shuffled_edge_index[0] = shuffled_edge_index[0, torch.randperm(edge_index.size(1))]
+
+    # Shuffle the community adjacency indices along both dimensions
+    shuffled_community_edge_index = community_edge_index.clone()
     shuffled_community_edge_index = community_edge_index[:, torch.randperm(community_edge_index.size(1))]
 
-    return shuffled_x, shuffled_edge_index, shuffled_community_edge_index
-
-
+    return x, shuffled_edge_index, shuffled_community_edge_index
 
 def summary(node_x, community_x, *args, **kwargs):
     """
