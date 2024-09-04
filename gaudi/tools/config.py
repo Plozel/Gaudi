@@ -1,4 +1,3 @@
-#%%
 import sys
 import json
 import argparse
@@ -19,6 +18,8 @@ class Config:
     pca_components: Optional[int] = None
     min_genes: Optional[int] = None
     min_cells: Optional[int] = None
+    min_counts: Optional[int] = None
+    max_pct_mt: Optional[int] = None
     n_top_genes: Optional[int] = None
     sample_name: Optional[str] = None
     dataset_name: Optional[str] = None
@@ -51,6 +52,8 @@ class GaudiArgumentParser:
         self.parser.add_argument('--adata_path', type=str, help="Path to the AnnData file")
         self.parser.add_argument('--pca_components', type=int, help="Number of PCA components")
         self.parser.add_argument('--min_genes', type=int, help="Minimum number of genes")
+        self.parser.add_argument('--min_counts', type=int, help="Minimum number of counts")
+        self.parser.add_argument('--max_pct_mt', type=int, help="Maximum percentage of MT genes")
         self.parser.add_argument('--min_cells', type=int, help="Minimum number of cells")
         self.parser.add_argument('--n_top_genes', type=int, help="Number of top genes")
         self.parser.add_argument('--sample_name', type=str, help="Name of the sample")
@@ -120,6 +123,3 @@ class GaudiArgumentParser:
 
         return Config(**filtered_config_data)
 
-
-
-# %%
