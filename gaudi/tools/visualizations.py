@@ -138,7 +138,7 @@ def plot_communities(
     labels = labels[filtered_indices] if labels is not None else None
 
     # Processing labels and applying scaling if necessary
-    colors, unique_labels = process_labels(
+    label_to_color_index, colors, unique_labels = process_labels(
         labels,
         is_continuous,
         subset_labels,
@@ -150,7 +150,7 @@ def plot_communities(
 
     plot_regions(communities_coordinates, colors, style_options, ax)
 
-    add_plot_annotations(is_continuous, labels, unique_labels, style_options, ax)
+    add_plot_annotations(is_continuous, labels, unique_labels, style_options, ax, label_to_color_index)
 
     if title:
         plt.title(title)
@@ -219,7 +219,7 @@ def process_labels(
     else:
         colors = [style_options["background_color"]] * len(communities_coordinates)
 
-    return colors, unique_labels if "unique_labels" in locals() else None
+    return label_to_color_index, colors, unique_labels if "unique_labels" in locals() else None
 
 
 def plot_regions(communities_coordinates, colors, style_options, ax):
@@ -247,7 +247,7 @@ def plot_regions(communities_coordinates, colors, style_options, ax):
         base_zorder += 2
 
 
-def add_plot_annotations(is_continuous, labels, unique_labels, style_options, ax):
+def add_plot_annotations(is_continuous, labels, unique_labels, style_options, ax, label_to_color_index):
     """Adds legends for discrete labels or color bars for continuous labels to the plot.
 
     Args:
@@ -272,7 +272,7 @@ def add_plot_annotations(is_continuous, labels, unique_labels, style_options, ax
                     marker="o",
                     color="w",
                     label=label,
-                    markerfacecolor=cmap(i),
+                    markerfacecolor=cmap(label_to_color_index[i]),
                     markersize=10,
                 )
                 for i, label in enumerate(unique_labels)
