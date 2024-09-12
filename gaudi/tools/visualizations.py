@@ -164,14 +164,16 @@ def plot_communities(
             zorder=100000000000,
         )
 
-    if save_path:
-        save_plot(fig, ax, save_path, style_options)
+    plt.tight_layout()
 
     if invert_yaxis:
         ax.invert_yaxis()
 
     if invert_xaxis:
         ax.invert_xaxis()
+        
+    if save_path:
+        save_plot(fig, ax, save_path, style_options)
 
     plt.show()
 
