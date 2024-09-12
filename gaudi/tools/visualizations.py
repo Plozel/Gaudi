@@ -195,6 +195,7 @@ def process_labels(
                 labels, style_options
             )
             colors = cmap(norm(labels))
+            label_to_color_index = None
         else:
             unique_labels = np.unique(labels)
             if len(unique_labels) > 20:  # Example threshold
@@ -291,10 +292,27 @@ def add_plot_annotations(is_continuous, labels, unique_labels, style_options, ax
                 ncol=ncol,
             )
         elif is_continuous:
-            norm = style_options.get("norm")
+            if ax is None:
+                ax = plt.gca() 
+
             cmap = style_options.get("cmap")
+            vmin = style_options.get("vmin")
+            vmax = style_options.get("vmax")
+
+            if vmin is None:
+                vmin = np.min(labels) 
+            if vmax is None:
+                vmax = np.max(labels) 
+
+            norm = plt.Normalize(vmin=vmin, vmax=vmax)
             scalar_mappable = cm.ScalarMappable(norm=norm, cmap=cmap)
+            scalar_mappable.set_clim(vmin=vmin, vmax=vmax)
             scalar_mappable.set_array([])
+
+            if ax.collections:
+                for coll in ax.collections:
+                    coll.remove()
+
             cbar = plt.colorbar(scalar_mappable, ax=ax)
             if style_options.get("color_bar_label"):
                 cbar.set_label(style_options["color_bar_label"])
