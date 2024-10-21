@@ -275,7 +275,7 @@ def add_plot_annotations(is_continuous, labels, unique_labels, style_options, ax
                     marker="o",
                     color="w",
                     label=label,
-                    markerfacecolor=cmap(label_to_color_index[i]),
+                    markerfacecolor=cmap(label_to_color_index[label]),
                     markersize=10,
                 )
                 for i, label in enumerate(unique_labels)
