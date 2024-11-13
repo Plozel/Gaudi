@@ -1,8 +1,6 @@
 # Gaudi - Computational Framework for Analyzing Spatial Transcriptomics Data Through Community-Level Perspective
 
-This repository contains a computational framework, named Gaudi, I developed during my MSc thesis at the Technion, under the supervision of Dr. Dvir Aran.
-The framework is designed for analyzing spatial transcriptomics data at the cellular community level. 
-It leverages machine learning models like graph neural networks, statistical tests, and self-supervised learning to provide insights into group-level phenomena such as cellular interactions and community dynamics.
+This repository contains a computational framework named Gaudi, which I developed as part of my MSc thesis at the Technion under the supervision of Dr. Dvir Aran. The framework is designed for efficient analysis of spatial transcriptomics data at the cellular community level. It leverages graph neural networks, statistical tests, and self-supervised learning to provide insights into group-level phenomena such as cellular interactions and community dynamics.
 
 
 ## Table of Contents
